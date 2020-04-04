@@ -1,0 +1,52 @@
+﻿@using System.Globalization
+@using RealCardsApp.Data
+@using RealCardsApp.Data.Entities
+
+@inject RealCardsContext DbContext
+
+@page "/games"
+
+<h1>List of Games</h1>
+<p>List of game sessions.</p>
+
+
+
+<DataGrid TItem="GameInstance"
+          PageSize="10"
+          Data="@gameList"
+          ReadData="@OnReadData"
+          TotalItems="@totalGames">
+    <ChildContent>
+        <DataGridCommandColumn TItem="GameInstance" />
+        <DataGridColumn TItem="GameInstance" Field="@nameof(GameInstance.Id)" Caption="#" Sortable="false" />
+        <DataGridColumn TItem="GameInstance" Field="@nameof(GameInstance.Game.Name)" Caption="Game Type" Sortable="true" />
+        <DataGridColumn TItem="GameInstance" Field="@nameof(GameInstance.GameStartDateTime)" Caption="Start Date" Sortable="true">
+            <DisplayTemplate>
+                @($"{(context as GameInstance)?.GameStartDateTime.ToString("MMMM dd, yyyy", CultureInfo.GetCultureInfo("nl-NL"))}")
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridColumn TItem="GameInstance" Field="@nameof(GameInstance.GameStartDateTime)" Caption="Start Time">
+            <DisplayTemplate>
+                @($"{(context as GameInstance)?.GameStartDateTime.ToString("H:mm:ss", CultureInfo.GetCultureInfo("nl-NL"))}")
+            </DisplayTemplate>
+        </DataGridColumn>
+    </ChildContent>
+    <DetailRowTemplate>
+        <a href="gameinstance?id=@(context as GameInstance)?.Id)" class="btn btn-info" role="button">Join</a>
+    </DetailRowTemplate>
+</DataGrid>
+
+@code
+{
+        List<GameInstance> gameList;
+        int totalGames;
+
+        async Task OnReadData(DataGridReadDataEventArgs<GameInstance> e)
+        {
+            gameList = DbContext.GameInstances.Skip(e.Page).Take(e.PageSize).ToList();
+            totalGames = DbContext.GameInstances.Count();
+
+            // always call StateHasChanged!
+            StateHasChanged();
+        }
+    }
